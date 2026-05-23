@@ -15,7 +15,7 @@ const createIssue = async (payload: IIssue, reporter_id: number) => {
   return result.rows[0];
 };
 
-const getAllIssues = async (query: any) => {
+const getAllIssues = async (query:any) => {
   let issues = [];
 
   if (query.type && query.status) {
@@ -67,9 +67,9 @@ const getAllIssues = async (query: any) => {
       description: currentIssue.description,
       type: currentIssue.type,
       status: currentIssue.status,
+      reporter: reporter,
       created_at: currentIssue.created_at,
       updated_at: currentIssue.updated_at,
-      reporter: reporter,
     };
 
     IssuesListWithReporter.push(IssueWithReporter);
@@ -78,7 +78,38 @@ const getAllIssues = async (query: any) => {
   return IssuesListWithReporter;
 };
 
+const getIssueById = async (id: string) => {
+
+  const issueResult = await pool.query(`SELECT * FROM issues WHERE id = $1`, [id]);
+
+  if (issueResult.rowCount === 0) 
+    throw new Error("Issue not found");
+  
+  const issue = issueResult.rows[0];
+  
+  const userResult = await pool.query(
+    `SELECT id, name, role FROM users WHERE id = $1`, 
+    [issue.reporter_id]
+  );
+  
+  const reporter = userResult.rows[0];
+
+  const IssueWithReporter = {
+    id: issue.id,
+    title: issue.title,
+    description: issue.description,
+    type: issue.type,
+    status: issue.status,
+    reporter: reporter,
+    created_at: issue.created_at,
+    updated_at: issue.updated_at,
+  };
+  
+  return IssueWithReporter;
+};
+
 export const IssuesService = {
   createIssue,
   getAllIssues,
+  getIssueById,
 };
