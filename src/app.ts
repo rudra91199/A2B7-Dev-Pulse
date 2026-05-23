@@ -3,6 +3,7 @@ import type { Application, Request, Response } from 'express'
 import cors from 'cors'
 import globalErrorHandler from './middlewares/globalErrorHandler'
 import { authRoute } from './modules/auth/auth.route'
+import { issuesRoute } from './modules/issues/issues.route'
 
 const app:Application = express()
 
@@ -12,6 +13,7 @@ app.use(cors({
 }))
 
 app.use("/api/auth", authRoute);
+app.use("/api/issues", issuesRoute);
 
 app.get("/", (req: Request,res:Response) => {
     res.status(200).json(
