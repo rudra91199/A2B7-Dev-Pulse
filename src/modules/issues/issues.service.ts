@@ -51,9 +51,17 @@ const getAllIssues = async (query: any) => {
 
     const reporter = userResult.rows[0];
 
+
+    //formatting this for getting the exact requirement format of issue
     const IssueWithReporter = {
-      ...currentIssue,
-      reporter:{...reporter},
+      id: currentIssue.id,
+      title: currentIssue.title,
+      description: currentIssue.description,
+      type: currentIssue.type,
+      status: currentIssue.status,
+      created_at: currentIssue.created_at,
+      updated_at: currentIssue.updated_at,
+      reporter: reporter,
     };
 
     finalIssuesList.push(IssueWithReporter);
