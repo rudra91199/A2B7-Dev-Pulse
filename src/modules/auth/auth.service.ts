@@ -61,7 +61,8 @@ const login = async (payload: Pick<IUser, "email" | "password">) => {
 
   delete validatedUser.password;
 
-  return { accessToken, validatedUser };
+  //renaming to show the response as per requirement.
+  return {token: accessToken, user:validatedUser };
 };
  
 export const AuthService = {
