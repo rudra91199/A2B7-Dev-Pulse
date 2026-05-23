@@ -16,30 +16,39 @@ const createIssue = async (payload: IIssue, reporter_id: number) => {
 };
 
 const getAllIssues = async (query: any) => {
-  let sql = "";
-  const params: string[] = [];
+  let issues = [];
 
-  console.log(query);
-
-  if (query.type) {
-    params.push(query.type);
-    sql = `SELECT * FROM issues WHERE 1=1 AND type = $${params.length}`;
-  }
-  if (query.status) {
-    params.push(query.status);
-    sql += `SELECT * FROM issues WHERE 1=1 AND status = $${params.length}`;
-  }
-
-  if (query.sort === "oldest") {
-    sql += "SELECT * FROM issues WHERE 1=1 ORDER BY created_at ASC";
+  if (query.type && query.status) {
+    const issuesResult = await pool.query(
+      `SELECT * FROM issues WHERE type = $1 AND status = $2`,
+      [query.type, query.status],
+    );
+    issues = issuesResult.rows;
+  } else if (query.type) {
+    const issuesResult = await pool.query(
+      `SELECT * FROM issues WHERE type = $1`,
+      [query.type],
+    );
+    issues = issuesResult.rows;
+  } else if (query.status) {
+    const issuesResult = await pool.query(
+      `SELECT * FROM issues WHERE status = $1`,
+      [query.status],
+    );
+    issues = issuesResult.rows;
+  } else if (query.sort === "oldest") {
+    const issuesResult = await pool.query(
+      "SELECT * FROM issues ORDER BY created_at ASC",
+    );
+    issues = issuesResult.rows;
   } else {
-    sql += "SELECT * FROM issues WHERE 1=1 ORDER BY created_at DESC";
+    const issuesResult = await pool.query(
+      "SELECT * FROM issues ORDER BY created_at DESC",
+    );
+    issues = issuesResult.rows;
   }
 
-  const issuesResult = await pool.query(sql, params);
-  const issues = issuesResult.rows;
-
-  const finalIssuesList = [];
+  const IssuesListWithReporter = [];
 
   for (let i = 0; i < issues.length; i++) {
     const currentIssue = issues[i];
@@ -50,7 +59,6 @@ const getAllIssues = async (query: any) => {
     );
 
     const reporter = userResult.rows[0];
-
 
     //formatting this for getting the exact requirement format of issue
     const IssueWithReporter = {
@@ -64,10 +72,10 @@ const getAllIssues = async (query: any) => {
       reporter: reporter,
     };
 
-    finalIssuesList.push(IssueWithReporter);
+    IssuesListWithReporter.push(IssueWithReporter);
   }
 
-  return finalIssuesList;
+  return IssuesListWithReporter;
 };
 
 export const IssuesService = {
