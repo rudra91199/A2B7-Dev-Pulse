@@ -1,8 +1,11 @@
 import type { Request, Response, NextFunction } from "express";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+import type { JwtPayload } from "jsonwebtoken";
 import config from "../config/config";
+import { pool } from "../db";
+import type { IUser } from "../modules/auth/auth.interface";
 
-export const auth = (...roles: any) => {
+export const auth = (...roles: IUser["role"][]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const token = req.headers.authorization;
@@ -14,9 +17,7 @@ export const auth = (...roles: any) => {
         });
       }
 
-      let validatedUser: JwtPayload | null = null;
-
-      validatedUser = jwt.verify(token, config.secret as string) as JwtPayload;
+      const validatedUser = jwt.verify(token, config.secret as string) as JwtPayload;
 
       const userData = await pool.query(
         `
@@ -32,15 +33,8 @@ export const auth = (...roles: any) => {
         });
       }
 
-      if (!userData.rows[0].is_active) {
-        return res.status(403).json({
-          success: false,
-          message: "User is not active",
-        });
-      }
-
-      if (role.length > 0 && !role.includes(validatedUser.role)) {
-        res.status(403).json({
+      if (roles.length > 0 && !roles.includes(validatedUser.role)) {
+       return res.status(403).json({
           success: false,
           message: "Forbidden",
         });
