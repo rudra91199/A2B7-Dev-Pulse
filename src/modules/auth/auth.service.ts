@@ -39,30 +39,31 @@ const login = async (payload: Pick<IUser, "email" | "password">) => {
     throw new Error("User not found");
   }
 
-  const user = userData.rows[0];
-  const matchPassword = await bcrypt.compare(password as string, user.password);
+  const matchPassword = await bcrypt.compare(password as string, userData.rows[0].password);
 
   if (!matchPassword) {
     throw new Error("Invalid password");
   }
 
+  const validatedUser = userData.rows[0];
+
   // as per requirement of assignment, id included
   const jwtPayload = {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
+    id: validatedUser.id,
+    name: validatedUser.name,
+    email: validatedUser.email,
+    role: validatedUser.role
   }; 
 
-  const token = jwt.sign(jwtPayload, config.secret as string, {
-    expiresIn: config.secretExpire,
+  const accessToken = jwt.sign(jwtPayload, config.secret as string, {
+    expiresIn: "1d",
   });
 
-  delete user.password;
+  delete validatedUser.password;
 
-  return { token, user };
+  return { accessToken, validatedUser };
 };
-
+ 
 export const AuthService = {
   signup,
   login,
