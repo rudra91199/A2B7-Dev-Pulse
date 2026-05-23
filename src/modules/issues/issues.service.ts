@@ -15,7 +15,7 @@ const createIssue = async (payload: IIssue, reporter_id: number) => {
   return result.rows[0];
 };
 
-const getAllIssues = async (query:any) => {
+const getAllIssues = async (query: any) => {
   let issues = [];
 
   if (query.type && query.status) {
@@ -79,19 +79,19 @@ const getAllIssues = async (query:any) => {
 };
 
 const getIssueById = async (id: string) => {
+  const issueResult = await pool.query(`SELECT * FROM issues WHERE id = $1`, [
+    id,
+  ]);
 
-  const issueResult = await pool.query(`SELECT * FROM issues WHERE id = $1`, [id]);
+  if (issueResult.rowCount === 0) throw new Error("Issue not found");
 
-  if (issueResult.rowCount === 0) 
-    throw new Error("Issue not found");
-  
   const issue = issueResult.rows[0];
-  
+
   const userResult = await pool.query(
-    `SELECT id, name, role FROM users WHERE id = $1`, 
-    [issue.reporter_id]
+    `SELECT id, name, role FROM users WHERE id = $1`,
+    [issue.reporter_id],
   );
-  
+
   const reporter = userResult.rows[0];
 
   const IssueWithReporter = {
@@ -104,12 +104,55 @@ const getIssueById = async (id: string) => {
     created_at: issue.created_at,
     updated_at: issue.updated_at,
   };
-  
+
   return IssueWithReporter;
+};
+
+const updateIssue = async (id: string, payload: Partial<IIssue>, user: any) => {
+  const existingResult = await pool.query(
+    `SELECT * FROM issues WHERE id = $1`,
+    [id],
+  );
+  if (existingResult.rowCount === 0) throw new Error("Issue not found");
+
+  const issue = existingResult.rows[0];
+
+  if (user.role === "contributor") {
+    if (issue.reporter_id !== user.id) {
+      throw new Error("Forbidden: You can only edit your own issues");
+    }
+    if (issue.status !== "open") {
+      throw new Error("Conflict: Cannot edit issues that are not open");
+    }
+  }
+
+  const result = await pool.query(
+    `UPDATE issues SET 
+     title = COALESCE($1, title), 
+     description = COALESCE($2, description), 
+     type = COALESCE($3, type), 
+     status = COALESCE($4, status), 
+     updated_at = NOW() 
+     WHERE id = $5 RETURNING *`,
+    [payload.title, payload.description, payload.type, payload.status, id],
+  );
+
+  return result.rows[0];
+};
+
+const deleteIssue = async (id: string) => {
+  const result = await pool.query(
+    `DELETE FROM issues WHERE id = $1 RETURNING *`,
+    [id],
+  );
+  if (result.rowCount === 0) throw new Error("Issue not found");
+  return result.rows[0];
 };
 
 export const IssuesService = {
   createIssue,
   getAllIssues,
   getIssueById,
+  updateIssue,
+  deleteIssue,
 };
