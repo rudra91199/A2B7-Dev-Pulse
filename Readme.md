@@ -1,6 +1,6 @@
 # 🚼 DevPulse
 
-**Live URL:** [Insert Your Live Link Here]
+**Live URL:** (https://dev-pulse-flame-mu.vercel.app/)
 
 A backend REST API for a collaborative issue and feature tracker. Built with strict raw SQL (no ORMs/JOINs) and role-based access control.
 

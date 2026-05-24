@@ -5,14 +5,14 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/server.js",
-    "dev": "console-ninja tsx watch src/server.ts",
+    "dev": "tsx watch src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsup"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",

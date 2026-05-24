@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { IssuesService } from "./issues.service";
 import sendResponse from "../../utils/sendResponse";
+import type { JwtPayload } from "jsonwebtoken";
 
 const createIssue = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -58,7 +59,7 @@ const updateIssue = async (req: Request, res: Response, next: NextFunction) => {
     const result = await IssuesService.updateIssue(
       req.params.id as string,
       req.body,
-      req.user,
+      req.user as JwtPayload,
     );
     sendResponse(res, {
       statusCode: 200,

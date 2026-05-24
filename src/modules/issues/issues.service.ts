@@ -1,4 +1,6 @@
+import type { JwtPayload } from "jsonwebtoken";
 import { pool } from "../../db";
+import type { IUser } from "../auth/auth.interface";
 import type { IIssue } from "./issues.interface";
 
 const createIssue = async (payload: IIssue, reporter_id: number) => {
@@ -108,7 +110,13 @@ const getIssueById = async (id: string) => {
   return IssueWithReporter;
 };
 
-const updateIssue = async (id: string, payload: Partial<IIssue>, user: any) => {
+const updateIssue = async (
+  id: string,
+  payload: Partial<IIssue>,
+  user: JwtPayload,
+) => {
+  const { title, description, type, status } = payload;
+
   const existingResult = await pool.query(
     `SELECT * FROM issues WHERE id = $1`,
     [id],
@@ -134,7 +142,7 @@ const updateIssue = async (id: string, payload: Partial<IIssue>, user: any) => {
      status = COALESCE($4, status), 
      updated_at = NOW() 
      WHERE id = $5 RETURNING *`,
-    [payload.title, payload.description, payload.type, payload.status, id],
+    [title, description, type, status, id],
   );
 
   return result.rows[0];
